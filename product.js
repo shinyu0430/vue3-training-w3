@@ -8,29 +8,14 @@ const app ={
         },
         products: [],
         tempId:'',
-        tempProduct:{
-            imageUrl:'',
-            imagesUrl:[],
-            title:'',
-            category:'',
-            unit:'',
-            origin_price:0,
-            price:0,
-            description:'',
-            content:'',
-        },
-        modal:''
+        tempProduct:{},
       }
     },
     methods: {
       checkAdmin() {
         axios.post(`${this.api.url}/api/user/check`)
-          .then((response) => {
-            if (response.data.success) {
+          .then(() => {
               this.getData();
-            } else {
-              window.location = 'login.html';
-            }
           })
           .catch((err) => {
             alert(err.data.message)
@@ -40,68 +25,64 @@ const app ={
       getData() {
         axios.get(`${this.api.url}/api/${this.api.path}/admin/products`)
           .then((response) => {
-            if (response.data.success) {
               this.products = response.data.products;
-            }
           })
           .catch((err) => {
             alert(err.data.message);
           })
       },
-      showModal(target,product){
-          if(product){
-            this.tempId = product.id;
-            this.tempProduct= product;
-          }
-        
-        this.modal = new bootstrap.Modal(document.querySelector(target));
+      showModal(target,product={}){
+        this.tempId = product.id;
+        this.tempProduct= product;
+        this.modal = new bootstrap.Modal(this.$refs[target]);
         this.modal.show()
       },
+
+      // 刪除產品
       deleteProduct(){
         axios.delete(`${this.api.url}/api/${this.api.path}/admin/product/${this.tempId}`)
-        .then((response) => {
-          if (response.data.success) {
+        .then(() => {
             this.tempId='';
             this.modal.hide();
             this.getData();
-          }
         })
         .catch((err) => {
           alert(err.data.message);
         })
       },
-      addProduct(product){
+
+      // 修改/新增產品
+      addProduct(){
           const data = {
               data:{...this.tempProduct}
           }
-          if(this.tempId){
+          if(this.tempId){ // 新增產品
             axios.put(`${this.api.url}/api/${this.api.path}/admin/product/${this.tempId}`,data)
-            .then((response) => {
-              if (response.data.success) {
-                this.tempId='';
-                this.tempProduct={};
+            .then(() => {
+                this.tempId = '';
+                this.tempProduct = {};
                 this.modal.hide();
                 this.getData();
-              }
             })
             .catch((err) => {
               alert(err.data.message);
             })
-          }else{
+          }else{ // 編輯產品
             axios.post(`${this.api.url}/api/${this.api.path}/admin/product/`,data)
-            .then((response) => {
-              if (response.data.success) {
-                this.tempId='';
+            .then(() => {
+                this.tempId = '';
                 this.tempProduct={};
                 this.modal.hide();
                 this.getData();
-              }
             })
             .catch((err) => {
               alert(err.data.message);
             })
           }
-        
+      },
+      // 新增圖片
+      addImages() {
+        this.tempProduct.imagesUrl = [''];
       }
     },
     created() {
